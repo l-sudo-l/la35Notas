@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduNotas – Gestión de Calificaciones</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">la35<span>Notas</span></div>
+    <div class="login-sub">Sistema de Gestión de Calificaciones · Demo Borrador</div>
+    <div class="field">
+      <label>Usuario / DNI</label>
+      <input type="text" id="login-user" placeholder="Ej: 30123456" value="admin">
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••" value="1234">
+    </div>
+    <div class="field">
+      <label>Ingresar como</label>
+      <select id="login-role">
+        <option value="admin">Autoridad / Administrador</option>
+        <option value="profesor">Profesor / Docente</option>
+        <option value="alumno">Alumno</option>
+        <option value="preceptor">Preceptor</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Ingresar al sistema</button>
+    <div class="login-hint">
+      Demo: cualquier usuario funciona. Rol seleccionado cambia la vista.<br>
+      Versión estática funcional.
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">la35<span>Notas</span></div>
+
+    <div class="sidebar-section">Principal</div>
+    <div class="nav-item active" data-page="dashboard" onclick="navigate(this)">
+      <span class="nav-icon">⊞</span> Panel General
+    </div>
+
+    <div class="sidebar-section" id="nav-admin-section">Administración</div>
+    <div class="nav-item" data-page="alumnos"  onclick="navigate(this)" id="nav-alumnos">
+      <span class="nav-icon">👥</span> Alumnos
+    </div>
+    <div class="nav-item" data-page="docentes" onclick="navigate(this)" id="nav-docentes">
+      <span class="nav-icon">🏫</span> Docentes
+    </div>
+    <div class="nav-item" data-page="cursos"   onclick="navigate(this)" id="nav-cursos">
+      <span class="nav-icon">📋</span> Cursos
+    </div>
+
+    <div class="sidebar-section">Calificaciones</div>
+    <div class="nav-item" data-page="notas"    onclick="navigate(this)">
+      <span class="nav-icon">✏️</span> Carga de Notas
+    </div>
+    <div class="nav-item" data-page="consulta" onclick="navigate(this)">
+      <span class="nav-icon">📊</span> Consulta / Boletín
+    </div>
+
+    <div class="sidebar-section">Comunicación</div>
+    <div class="nav-item" data-page="notificaciones" onclick="navigate(this)">
+      <span class="nav-icon">🔔</span> Notificaciones
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-chip">
+        <div class="user-avatar" id="sidebar-avatar">A</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebar-name">Usuario</div>
+          <div class="user-role" id="sidebar-role">Rol</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="hamburger" onclick="openSidebar()">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="topbar-title" id="page-title">Panel General</div>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-period" id="topbar-period">1.° Bimestre 2025</span>
+        <button class="btn btn-ghost btn-sm" onclick="doLogout()">Salir</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="page active" id="page-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card blue" data-icon="👥">
+            <div class="stat-label">Alumnos activos</div>
+            <div class="stat-value" id="dash-count">1</div>
+            <div class="stat-sub">1 curso · 1 turno</div>
+          </div>
+          <div class="stat-card ok" data-icon="✅">
+            <div class="stat-label">Aprobados</div>
+            <div class="stat-value">20</div>
+            <div class="stat-sub">49 % del total</div>
+          </div>
+          <div class="stat-card warn" data-icon="⚠️">
+            <div class="stat-label">Contenidos incompletos</div>
+            <div class="stat-value">23</div>
+            <div class="stat-sub">51 % del total</div>
+          </div>
+          <div class="stat-card" data-icon="📧">
+            <div class="stat-label">Alertas enviadas</div>
+            <div class="stat-value">1</div>
+            <div class="stat-sub">Este bimestre</div>
+          </div>
+        </div>
+
+        <div class="overview-grid">
+          <div>
+            <div class="section-header">
+              <div class="section-title">Actividad reciente</div>
+            </div>
+            <div class="card">
+              <div class="activity-list">
+                <div class="activity-item">
+                  <div class="activity-dot dot-ok"></div>
+                  <div style="flex:1">
+                    <div style="font-size:13.5px;font-weight:500">Prof. Moya cargó notas — Practicas Profesionalizantes 6° 1°</div>
+                    <div style="font-size:12px;color:var(--muted)">hace 15 min · 43 alumnos actualizados</div>
+                  </div>
+                  <span class="badge badge-ok">Completo</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="section-header">
+              <div class="section-title">Calendario</div>
+            </div>
+            <div class="card">
+              <div class="agenda-item">
+                <div class="agenda-date"><div class="day">28</div>JUN</div>
+                <div class="agenda-text">
+                  <div class="agenda-title">Cierre 2.° Bimestre</div>
+                  <div class="agenda-sub">Todos los cursos · Envío de boletines</div>
+                </div>
+              </div>
+              <div class="agenda-item">
+                <div class="agenda-date" style="background:var(--ok)"><div class="day">05</div>JUL</div>
+                <div class="agenda-text">
+                  <div class="agenda-title">Inicio 1.° Cuatrimestre</div>
+                  <div class="agenda-sub">Apertura de carga de notas</div>
+                </div>
+              </div>
+              <div class="agenda-item">
+                <div class="agenda-date" style="background:var(--warn)"><div class="day">10</div>DIC</div>
+                <div class="agenda-text">
+                  <div class="agenda-title">Primer Cierre Administrativo</div>
+                  <div class="agenda-sub">Contenidos incompletos · Diciembre</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="page-alumnos">
+        <div class="section-header">
+          <div class="section-title">Gestión de Alumnos</div>
+          <button class="btn btn-blue" onclick="openModalNuevoAlumno()">+ Nuevo alumno</button>
+        </div>
+        <div class="card">
+          <div class="filters">
+            <input type="search" placeholder="Buscar por nombre o DNI…" id="search-alumnos" oninput="filterAlumnos()">
+            <select id="filter-curso" onchange="filterAlumnos()">
+              <option value="">Todos los cursos</option>
+              <option>6°1°</option>
+            </select>
+            <select id="filter-estado" onchange="filterAlumnos()">
+              <option value="">Todos</option>
+              <option value="activo">Activo</option>
+              <option value="egresado">Egresado</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table id="tabla-alumnos">
+              <thead>
+                <tr>
+                  <th>DNI</th><th>Apellido y nombre</th><th>Curso</th>
+                  <th>Estado</th><th>Promedio</th><th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-alumnos"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="page-docentes">
+        <div class="section-header">
+          <div class="section-title">Docentes y Materias</div>
+          <button class="btn btn-blue" onclick="showToast('no disponible', 'warn')">+ Nuevo docente</button>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>DNI</th><th>Nombre</th><th>Materia(s)</th><th>Cursos</th><th>Estado</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>31928371</td><td>Moya Juan</td><td>Practicas Profesionalizantes</td><td>6° 1°</td><td><span class="badge badge-ok">Activo</span></td></tr>
+                <tr><td>32651658</td><td>Serrano Aaron</td><td>Practicas Profesionalizantes</td><td>6° 1°</td><td><span class="badge badge-ok">Activo</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="page-cursos">
+        <div class="section-header"><div class="section-title">Cursos y Divisiones</div></div>
+        <div class="stats-grid">
+          <div class="stat-card ok"   data-icon="🏫"><div class="stat-label">6to año</div><div class="stat-value" id="curso-count">43</div><div class="stat-sub">1°</div></div>
+        </div>
+      </div>
+
+      <div class="page" id="page-notas">
+        <div class="section-header">
+          <div class="section-title">Carga de Calificaciones</div>
+          <span class="badge badge-blue">1.° Bimestre 2025</span>
+        </div>
+        <div class="card" style="margin-bottom:20px">
+          <div class="filters">
+            <select id="notas-curso" onchange="loadNotasCurso()">
+              <option value="">Seleccionar curso…</option>
+              <option>6°1°</option>
+            </select>
+            <select id="notas-materia">
+              <option value="">Seleccionar materia…</option>
+              <option>Practicas Profesionalizantes</option>
+            </select>
+            <select id="notas-periodo">
+              <option>1er Bimestre</option><option>2do Bimestre</option>
+              <option>1er Cuatrimestre</option><option>2do Cuatrimestre</option>
+              <option>Cierre Dic.</option><option>Cierre Feb.</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card" id="notas-table-card" style="display:none">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Alumno</th><th>DNI</th>
+                  <th>Bim 1</th><th>Bim 2</th>
+                  <th>Promedio sugerido</th><th>Nota final</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="tbody-notas"></tbody>
+            </table>
+          </div>
+          <div style="padding:14px 16px;border-top:1px solid var(--cream);display:flex;gap:10px;justify-content:flex-end">
+            <button class="btn btn-ghost" onclick="showToast('borrador guardado','ok')">Guardar borrador</button>
+            <button class="btn btn-blue"  onclick="guardarNotas()">Confirmar y cerrar período ✓</button>
+          </div>
+        </div>
+
+        <div id="notas-empty" style="text-align:center;padding:60px 20px;color:var(--muted)">
+          <div style="font-size:3rem;margin-bottom:12px">✏️</div>
+          <div style="font-size:15px;font-weight:600">Seleccioná curso y materia para cargar notas</div>
+        </div>
+      </div>
+
+      <div class="page" id="page-consulta">
+        <div class="section-header">
+          <div class="section-title" id="consulta-title">Mis Calificaciones</div>
+          <button class="btn btn-ghost btn-sm" onclick="showToast('pdf generado','ok')">📄 Exportar boletín</button>
+        </div>
+        <div class="my-notas-grid" id="mis-materias-grid"></div>
+      </div>
+
+      <div class="page" id="page-notificaciones">
+        <div class="section-header">
+          <div class="section-title">Notificaciones y Alertas</div>
+          <button class="btn btn-blue btn-sm" onclick="showToast('informes programados','ok')">Enviar informes pendientes</button>
+        </div>
+        <div class="notif-list">
+          <div class="notif-item">
+            <div class="notif-icon ok">✅</div>
+            <div class="notif-body">
+              <div class="notif-title">Rodriguez Luis — aprobado en Practicas Profesionalizantes</div>
+              <div class="notif-desc">Nota: 8 · Adulto responsable: Rodriguez Luis (luis.manuel.rodriguez.0827@gmail.com)</div>
+              <div class="notif-meta">Correo enviado · hace 1 h</div>
+            </div>
+            <span class="badge badge-warn">enviado</span>
+          </div>
+          <div class="notif-item">
+            <div class="notif-icon warn">⚠️</div>
+            <div class="notif-body">
+              <div class="notif-title">Zurita Matias — Desaprobado en Practicas Profesionalizantes</div>
+              <div class="notif-desc">Nota: 0,50 · Adulto responsable: papa de zurita (papa_de_zurita@mail.com)</div>
+              <div class="notif-meta">Correo enviado · hace 3 h</div>
+            </div>
+            <span class="badge badge-warn">Crítica</span>
+          </div>
+          <div class="notif-item">
+            <div class="notif-icon blue">📧</div>
+            <div class="notif-body">
+              <div class="notif-title">Informe 1.° Bimestre — 6°1° (43 alumnos)</div>
+              <div class="notif-desc">Boletín enviado a todos los adultos responsables del curso</div>
+              <div class="notif-meta">Enviado ayer a las 18:00 h</div>
+            </div>
+            <span class="badge badge-blue">Informe</span>
+          </div>
+        </div>
+
+        <div class="section-header" style="margin-top:28px">
+          <div class="section-title">Configuración de envío</div>
+        </div>
+        <div class="card" style="padding:20px 22px">
+          <div class="field" style="max-width:340px">
+            <label>Momento de envío del boletín</label>
+            <select>
+              <option>Al cerrar el bimestre (automático)</option>
+              <option>Al confirmar manualmente</option>
+              <option>Al cierre del boletín</option>
+            </select>
+          </div>
+          <div class="field" style="max-width:340px">
+            <label>Umbral de alerta (nota mínima)</label>
+            <select>
+              <option>Menor a 6 (aprobación)</option>
+              <option>Menor a 5</option>
+              <option>Menor a 7 (preventivo)</option>
+            </select>
+          </div>
+          <button class="btn btn-blue btn-sm" onclick="showToast('configuración guardada','ok')">Guardar configuración</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-nota">
+  <div class="modal">
+    <div class="modal-title">Cargar / editar nota</div>
+    <div class="modal-sub" id="modal-nota-sub">Alumno · Materia</div>
+    <div class="nota-grid">
+      <div class="nota-field"><label>1er Bimestre</label><input type="number" min="1" max="10" id="n-bim1" placeholder="–" oninput="calcPromedio()"></div>
+      <div class="nota-field"><label>2do Bimestre</label><input type="number" min="1" max="10" id="n-bim2" placeholder="–" oninput="calcPromedio()"></div>
+      <div class="nota-field"><label>1er Cuatrim.</label><input type="number" min="1" max="10" id="n-cuat1" placeholder="–" oninput="calcPromedio()"></div>
+    </div>
+    <div class="promedio-preview">
+      <div class="label">Promedio sugerido</div>
+      <div class="value" id="promedio-val">–</div>
+      <div class="hint">El docente tiene la decisión final sobre la nota que se asienta</div>
+    </div>
+    <div class="nota-field" style="margin-top:12px">
+      <label>Nota final (docente)</label>
+      <input type="number" min="1" max="10" id="n-final" placeholder="Ingrese nota final">
+    </div>
+    <div class="nota-field" style="margin-top:12px">
+      <label>Contenidos incompletos</label>
+      <input type="text" id="n-incompletos" placeholder="Ej: Unidad 3 – Ecuaciones cuadráticas">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-nota')">Cancelar</button>
+      <button class="btn btn-blue"  onclick="guardarNota()">Guardar nota ✓</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-alumno">
+  <div class="modal">
+    <div class="modal-title">Nuevo alumno</div>
+    <div class="modal-sub">Completar con los datos del alumno</div>
+    <div class="field"><label>DNI</label><input type="text" id="add-dni" placeholder="Ej: 45678901"></div>
+    <div class="field"><label>Apellido</label><input type="text" id="add-apellido" placeholder="Ej: González"></div>
+    <div class="field"><label>Nombre</label><input type="text" id="add-nombre" placeholder="Ej: Sofía"></div>
+    <div class="field">
+      <label>Curso</label>
+      <select id="add-curso"><option>6°1°</option></select>
+    </div>
+    <div class="field"><label>Email adulto responsable</label><input type="email" placeholder="responsable@mail.com"></div>
+    <div class="field"><label>Estado</label><select id="add-estado"><option value="activo">Activo</option><option value="egresado">Egresado</option></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-alumno')">Cancelar</button>
+      <button class="btn btn-blue"  onclick="guardarNuevoAlumno()">Guardar ✓</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+let currentRole = 'admin';
+let currentUser = 'Admin';
+
+let alumnos = [
+  { dni:'96103383', nombre:'Rodriguez Luis', curso:'6° 1°', estado:'activo', promedio:7.8 },
+];
+
+const alumnosMaterias = [
+  { materia:'Practicas Profesionalizantes', prof:'Moya', bim1:9, bim2:9, cuat1:9, final:9, estado:'ok' },
+];
+
+function doLogin() {
+  currentRole = document.getElementById('login-role').value;
+  currentUser = document.getElementById('login-user').value || 'Usuario';
+  document.getElementById('sidebar-name').textContent = currentUser;
+  document.getElementById('sidebar-role').textContent = currentRole;
+  document.getElementById('sidebar-avatar').textContent = currentUser[0].toUpperCase();
+  setupRole();
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  actualizarTodo();
+}
+
+function doLogout() { location.reload(); }
+
+function setupRole() {
+  const isAlumno = currentRole === 'alumno';
+  document.getElementById('nav-admin-section').style.display = isAlumno ? 'none' : '';
+  document.getElementById('nav-alumnos').style.display = isAlumno ? 'none' : '';
+  document.getElementById('nav-docentes').style.display = isAlumno ? 'none' : '';
+  document.getElementById('nav-cursos').style.display = isAlumno ? 'none' : '';
+  if(isAlumno) navigate(document.querySelector('[data-page="consulta"]'));
+}
+
+function navigate(el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  const page = el.dataset.page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('page-title').textContent = page.toUpperCase();
+  closeSidebar();
+}
+
+function actualizarTodo() {
+  renderAlumnos();
+  renderMisNotas();
+  document.getElementById('dash-count').textContent = alumnos.length;
+  document.getElementById('curso-count').textContent = alumnos.length;
+}
+
+function renderAlumnos(lista = alumnos) {
+  document.getElementById('tbody-alumnos').innerHTML = lista.map(a => `
+    <tr>
+      <td>${a.dni}</td><td>${a.nombre}</td>
+      <td><span class="badge badge-blue">${a.curso}</span></td>
+      <td><span class="badge badge-ok">${a.estado}</span></td>
+      <td><span class="nota-cell nota-ok">${a.promedio}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openModalNotas('${a.nombre}')">✏️ Notas</button></td>
+    </tr>
+  `).join('');
+}
+
+function renderMisNotas() {
+  document.getElementById('mis-materias-grid').innerHTML = alumnosMaterias.map(m => `
+    <div class="materia-card"><div class="materia-header"><strong>${m.materia}</strong></div>
+    <div class="nota-row"><span>Final:</span><span class="nota-row-val ok">${m.final || '—'}</span></div></div>
+  `).join('');
+}
+
+function filterAlumnos() {
+  const q = document.getElementById('search-alumnos').value.toLowerCase();
+  const f = alumnos.filter(a => a.nombre.toLowerCase().includes(q) || a.dni.includes(q));
+  renderAlumnos(f);
+}
+
+function loadNotasCurso() {
+  document.getElementById('notas-table-card').style.display = 'block';
+  document.getElementById('notas-empty').style.display = 'none';
+  document.getElementById('tbody-notas').innerHTML = alumnos.map(a => `
+    <tr><td>${a.nombre}</td><td>${a.dni}</td><td>7</td><td>8</td><td>7.5</td><td>8</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="openModalNotas('${a.nombre}')">✏️</button></td></tr>
+  `).join('');
+}
+
+function calcPromedio() {
+  const b1 = parseFloat(document.getElementById('n-bim1').value) || 0;
+  const b2 = parseFloat(document.getElementById('n-bim2').value) || 0;
+  document.getElementById('promedio-val').textContent = ((b1+b2)/2).toFixed(1);
+}
+
+function openModalNotas(nombre) {
+  document.getElementById('modal-nota-sub').textContent = nombre;
+  document.getElementById('modal-nota').classList.add('open');
+}
+function openModalNuevoAlumno() { document.getElementById('modal-alumno').classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function guardarNota() {
+  showToast('nota guardada', 'ok');
+  closeModal('modal-nota');
+}
+
+function guardarNotas() { showToast('periodo cerrado', 'ok'); }
+
+function guardarNuevoAlumno() {
+  const dni = document.getElementById('add-dni').value;
+  const nom = document.getElementById('add-nombre').value;
+  if(dni && nom) {
+    alumnos.push({ dni, nombre: nom, curso: '6° 1°', estado: 'activo', promedio: 0 });
+    actualizarTodo();
+    closeModal('modal-alumno');
+    showToast('alumno guardado', 'ok');
+  }
+}
+
+function showToast(msg, type) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast show';
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function openSidebar() { document.getElementById('sidebar').classList.add('open'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); }
+</script>
+</body>
+</html>
