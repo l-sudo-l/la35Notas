@@ -1,15 +1,15 @@
 // Matriz de permisos (RBAC). Fuente única de verdad para backend y menú.
-const P = {
+const PERMISOS = {
   admin: ['usuarios.gestionar','academico.configurar','periodo.cerrar','notas.cargar','notas.corregir_cerradas',
           'asistencia.registrar','comunicados.crear','boletines.gestionar','auditoria.ver'],
   preceptor: ['notas.corregir_cerradas','asistencia.registrar','comunicados.crear','boletines.gestionar'],
   profesor: ['notas.cargar'],
   alumno: [],
 };
-const can = (rol, perm) => (P[rol] || []).includes(perm);
+const puede = (rol, permiso) => (PERMISOS[rol] || []).includes(permiso);
 
 // Páginas permitidas por rol (el servidor también las protege)
-const PAGES = {
+const PAGINAS = {
   'dashboard.html':   ['admin','preceptor','profesor','alumno'],
   'usuarios.html':    ['admin'],
   'academico.html':   ['admin'],
@@ -19,4 +19,4 @@ const PAGES = {
   'comunicados.html': ['admin','preceptor','profesor','alumno'],
   'boletines.html':   ['admin','preceptor'],
 };
-module.exports = { P, can, PAGES };
+module.exports = { PERMISOS, puede, PAGINAS };

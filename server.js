@@ -1,12 +1,12 @@
 const http = require('http');
-const cfg = require('./src/config');
+const conf = require('./src/config');
 require('./src/db');
 require('./src/routes/auth');
 require('./src/routes/usuarios');
 require('./src/routes/academico');
 require('./src/routes/comunicados');
-const { handler } = require('./src/http');
-const { get } = require('./src/db');
+const { manejador } = require('./src/http');
+const { uno } = require('./src/db');
 
-if (!get('SELECT 1 FROM usuarios LIMIT 1')) console.log('⚠  Base vacía. Ejecutá: npm run seed');
-http.createServer(handler).listen(cfg.port, () => console.log(`${cfg.school} escuchando en http://localhost:${cfg.port}`));
+if (!uno('SELECT 1 FROM usuarios LIMIT 1')) console.log('⚠  Base vacía. Ejecutá: npm run seed');
+http.createServer(manejador).listen(conf.port, () => console.log(`${conf.colegio} escuchando en http://localhost:${conf.port}`));

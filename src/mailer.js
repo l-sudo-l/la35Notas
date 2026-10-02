@@ -1,27 +1,27 @@
-const cfg = require('./config');
-const { all, get, run } = require('./db');
+const conf = require('./config');
+const { todos, uno, ejecutar } = require('./db');
 let nodemailer = null;
 try { nodemailer = require('nodemailer'); } catch {}
-const smtpListo = () => !!(nodemailer && cfg.smtp.host && cfg.smtp.user && cfg.smtp.pass);
-let transport;
+const smtpListo = () => !!(nodemailer && conf.smtp.host && conf.smtp.user && conf.smtp.pass);
+let transporte;
 
-// Encola un mail en la bandeja de salida (outbox)
+// Encola un mail en la bandeja de salida (bandeja_salida)
 const encolar = (tipo, refId, to, asunto, html) =>
-  run('INSERT INTO outbox(tipo,ref_id,destinatario,asunto,cuerpo_html) VALUES(?,?,?,?,?)', tipo, refId ?? null, to, asunto, html).lastInsertRowid;
+  ejecutar('INSERT INTO bandeja_salida(tipo,ref_id,destinatario,asunto,cuerpo_html) VALUES(?,?,?,?,?)', tipo, refId ?? null, to, asunto, html).lastInsertRowid;
 
 // Envía pendientes (o con error). Sin SMTP configurado, queda como 'simulado'.
-async function procesarOutbox(ids) {
-  const filas = ids ? all(`SELECT * FROM outbox WHERE id IN (${ids.map(() => '?').join(',') || 'NULL'})`, ...ids)
-                    : all("SELECT * FROM outbox WHERE estado IN ('pendiente','error')");
-  const res = { enviados: 0, simulados: 0, errores: 0 };
+async function procesarBandeja(ids) {
+  const filas = ids ? todos(`SELECT * FROM bandeja_salida WHERE id IN (${ids.map(() => '?').join(',') || 'NULL'})`, ...ids)
+                    : todos("SELECT * FROM bandeja_salida WHERE estado IN ('pendiente','error')");
+  const resumen = { enviados: 0, simulados: 0, errores: 0 };
   for (const m of filas) {
     try {
-      if (!smtpListo()) { run("UPDATE outbox SET estado='simulado', enviado=datetime('now'), error=NULL WHERE id=?", m.id); res.simulados++; continue; }
-      transport ??= nodemailer.createTransport({ host: cfg.smtp.host, port: cfg.smtp.port, secure: cfg.smtp.port === 465, auth: { user: cfg.smtp.user, pass: cfg.smtp.pass } });
-      await transport.sendMail({ from: cfg.smtp.from, to: m.destinatario, subject: m.asunto, html: m.cuerpo_html });
-      run("UPDATE outbox SET estado='enviado', enviado=datetime('now'), error=NULL WHERE id=?", m.id); res.enviados++;
-    } catch (e) { run("UPDATE outbox SET estado='error', error=? WHERE id=?", String(e.message).slice(0, 300), m.id); res.errores++; }
+      if (!smtpListo()) { ejecutar("UPDATE bandeja_salida SET estado='simulado', enviado=datetime('now'), error=NULL WHERE id=?", m.id); resumen.simulados++; continue; }
+      transporte ??= nodemailer.createTransport({ host: conf.smtp.host, port: conf.smtp.port, secure: conf.smtp.port === 465, auth: { user: conf.smtp.user, pass: conf.smtp.pass } });
+      await transporte.sendMail({ from: conf.smtp.from, to: m.destinatario, subject: m.asunto, html: m.cuerpo_html });
+      ejecutar("UPDATE bandeja_salida SET estado='enviado', enviado=datetime('now'), error=NULL WHERE id=?", m.id); resumen.enviados++;
+    } catch (e) { ejecutar("UPDATE bandeja_salida SET estado='error', error=? WHERE id=?", String(e.message).slice(0, 300), m.id); resumen.errores++; }
   }
-  return res;
+  return resumen;
 }
-module.exports = { encolar, procesarOutbox, smtpListo };
+module.exports = { encolar, procesarBandeja, smtpListo };

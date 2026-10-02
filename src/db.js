@@ -1,10 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 const { DatabaseSync } = require('node:sqlite');
-const cfg = require('./config');
+const conf = require('./config');
 
-fs.mkdirSync(path.dirname(cfg.dbPath), { recursive: true });
-const db = new DatabaseSync(cfg.dbPath);
+fs.mkdirSync(path.dirname(conf.rutaBase), { recursive: true });
+const db = new DatabaseSync(conf.rutaBase);
 db.exec('PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;');
 
 db.exec(`
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS materias (id INTEGER PRIMARY KEY, nombre TEXT NOT NUL
 CREATE TABLE IF NOT EXISTS usuarios (
   id INTEGER PRIMARY KEY, dni TEXT NOT NULL UNIQUE, nombre TEXT NOT NULL, apellido TEXT NOT NULL, email TEXT,
   rol TEXT NOT NULL CHECK (rol IN ('admin','profesor','preceptor','alumno')),
-  pass_hash TEXT NOT NULL, debe_cambiar_pass INTEGER NOT NULL DEFAULT 1,
+  clave_hash TEXT NOT NULL, debe_cambiar_clave INTEGER NOT NULL DEFAULT 1,
   curso_id INTEGER REFERENCES cursos(id), activo INTEGER NOT NULL DEFAULT 1, creado TEXT NOT NULL DEFAULT (datetime('now')));
 CREATE TABLE IF NOT EXISTS tutores (
   id INTEGER PRIMARY KEY, alumno_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS boletines (
   id INTEGER PRIMARY KEY, alumno_id INTEGER NOT NULL REFERENCES usuarios(id), periodo_id INTEGER NOT NULL REFERENCES periodos(id),
   estado TEXT NOT NULL DEFAULT 'borrador' CHECK (estado IN ('borrador','revisado','enviado','error')),
   revisado_por INTEGER REFERENCES usuarios(id), enviado TEXT, UNIQUE(alumno_id, periodo_id));
-CREATE TABLE IF NOT EXISTS outbox (
+CREATE TABLE IF NOT EXISTS bandeja_salida (
   id INTEGER PRIMARY KEY, tipo TEXT NOT NULL, ref_id INTEGER, destinatario TEXT NOT NULL, asunto TEXT NOT NULL, cuerpo_html TEXT NOT NULL,
   estado TEXT NOT NULL DEFAULT 'pendiente' CHECK (estado IN ('pendiente','enviado','simulado','error')), error TEXT,
   creado TEXT NOT NULL DEFAULT (datetime('now')), enviado TEXT);
@@ -57,10 +57,10 @@ CREATE INDEX IF NOT EXISTS ix_notas_alumno ON notas(alumno_id);
 CREATE INDEX IF NOT EXISTS ix_asis_curso ON asistencias(curso_id, fecha);
 `);
 
-const all = (sql, ...p) => db.prepare(sql).all(...p);
-const get = (sql, ...p) => db.prepare(sql).get(...p);
-const run = (sql, ...p) => db.prepare(sql).run(...p);
-const tx = (fn) => { db.exec('BEGIN'); try { const r = fn(); db.exec('COMMIT'); return r; } catch (e) { db.exec('ROLLBACK'); throw e; } };
-const audit = (uid, accion, detalle = '') => run('INSERT INTO auditoria(usuario_id,accion,detalle) VALUES(?,?,?)', uid ?? null, accion, String(detalle));
+const todos = (sql, ...p) => db.prepare(sql).all(...p);
+const uno = (sql, ...p) => db.prepare(sql).get(...p);
+const ejecutar = (sql, ...p) => db.prepare(sql).run(...p);
+const transaccion = (fn) => { db.exec('BEGIN'); try { const r = fn(); db.exec('COMMIT'); return r; } catch (e) { db.exec('ROLLBACK'); throw e; } };
+const auditar = (usuarioId, accion, detalle = '') => ejecutar('INSERT INTO auditoria(usuario_id,accion,detalle) VALUES(?,?,?)', usuarioId ?? null, accion, String(detalle));
 
-module.exports = { db, all, get, run, tx, audit };
+module.exports = { db, todos, uno, ejecutar, transaccion, auditar };

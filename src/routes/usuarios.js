@@ -1,65 +1,65 @@
-const { route, bad, notFound, forbid } = require('../http');
-const { get, run, all, tx, audit } = require('../db');
-const { hashPass } = require('../auth');
+const { ruta, pedidoInvalido, noEncontrado, prohibido } = require('../http');
+const { uno, ejecutar, todos, transaccion, auditar } = require('../db');
+const { hashearClave } = require('../auth');
 const { cursosVisibles } = require('../services');
-const ADMIN = { roles: ['admin'] }, STAFF = { roles: ['admin', 'preceptor', 'profesor'] };
+const SOLO_ADMIN = { roles: ['admin'] }, PERSONAL = { roles: ['admin', 'preceptor', 'profesor'] };
 const ROLES = ['admin', 'profesor', 'preceptor', 'alumno'];
-const txt = (v, max = 120) => String(v ?? '').trim().slice(0, max);
-const emailOk = (e) => !e || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e);
+const texto = (v, max = 120) => String(v ?? '').trim().slice(0, max);
+const emailValido = (e) => !e || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e);
 
-route('GET', '/api/usuarios', ({ query }) => {
+ruta('GET', '/api/usuarios', ({ filtros }) => {
   const w = [], p = [];
-  if (query.rol) { w.push('u.rol=?'); p.push(query.rol); }
-  if (query.q) { w.push('(u.dni LIKE ? OR u.apellido LIKE ? OR u.nombre LIKE ?)'); p.push(...Array(3).fill(`%${query.q}%`)); }
-  const us = all(`SELECT u.id,u.dni,u.nombre,u.apellido,u.email,u.rol,u.curso_id,u.activo,c.nombre curso FROM usuarios u LEFT JOIN cursos c ON c.id=u.curso_id
+  if (filtros.rol) { w.push('u.rol=?'); p.push(filtros.rol); }
+  if (filtros.q) { w.push('(u.dni LIKE ? OR u.apellido LIKE ? OR u.nombre LIKE ?)'); p.push(...Array(3).fill(`%${filtros.q}%`)); }
+  const us = todos(`SELECT u.id,u.dni,u.nombre,u.apellido,u.email,u.rol,u.curso_id,u.activo,c.nombre curso FROM usuarios u LEFT JOIN cursos c ON c.id=u.curso_id
     ${w.length ? 'WHERE ' + w.join(' AND ') : ''} ORDER BY u.apellido,u.nombre`, ...p);
   for (const u of us) {
-    if (u.rol === 'alumno') u.tutores = all('SELECT nombre,email,parentesco FROM tutores WHERE alumno_id=?', u.id);
-    if (u.rol === 'preceptor') u.cursos = all('SELECT curso_id FROM preceptor_cursos WHERE preceptor_id=?', u.id).map((x) => x.curso_id);
+    if (u.rol === 'alumno') u.tutores = todos('SELECT nombre,email,parentesco FROM tutores WHERE alumno_id=?', u.id);
+    if (u.rol === 'preceptor') u.cursos = todos('SELECT curso_id FROM preceptor_cursos WHERE preceptor_id=?', u.id).map((x) => x.curso_id);
   }
   return us;
-}, ADMIN);
+}, SOLO_ADMIN);
 
 function guardar(id, b, actor) {
-  const rol = id ? get('SELECT rol FROM usuarios WHERE id=?', id)?.rol : b.rol;
-  if (!ROLES.includes(rol)) throw bad('Rol inválido');
-  const dni = txt(b.dni, 12), nombre = txt(b.nombre), apellido = txt(b.apellido), email = txt(b.email, 160);
-  if (!/^\d{6,12}$/.test(dni)) throw bad('El DNI debe tener entre 6 y 12 dígitos');
-  if (!nombre || !apellido) throw bad('Nombre y apellido son obligatorios');
-  if (!emailOk(email)) throw bad('Email inválido');
+  const rol = id ? uno('SELECT rol FROM usuarios WHERE id=?', id)?.rol : b.rol;
+  if (!ROLES.includes(rol)) throw pedidoInvalido('Rol inválido');
+  const dni = texto(b.dni, 12), nombre = texto(b.nombre), apellido = texto(b.apellido), email = texto(b.email, 160);
+  if (!/^\d{6,12}$/.test(dni)) throw pedidoInvalido('El DNI debe tener entre 6 y 12 dígitos');
+  if (!nombre || !apellido) throw pedidoInvalido('Nombre y apellido son obligatorios');
+  if (!emailValido(email)) throw pedidoInvalido('Email inválido');
   let cursoId = null;
-  if (rol === 'alumno') { cursoId = +b.curso_id || null; if (!cursoId) throw bad('El alumno necesita un curso'); }
-  const tutores = (b.tutores || []).filter((t) => t.email).map((t) => ({ nombre: txt(t.nombre) || 'Responsable', email: txt(t.email, 160), parentesco: txt(t.parentesco, 40) || 'Responsable' }));
-  if (tutores.some((t) => !emailOk(t.email))) throw bad('Email de tutor inválido');
-  return tx(() => {
+  if (rol === 'alumno') { cursoId = +b.curso_id || null; if (!cursoId) throw pedidoInvalido('El alumno necesita un curso'); }
+  const tutores = (b.tutores || []).filter((t) => t.email).map((t) => ({ nombre: texto(t.nombre) || 'Responsable', email: texto(t.email, 160), parentesco: texto(t.parentesco, 40) || 'Responsable' }));
+  if (tutores.some((t) => !emailValido(t.email))) throw pedidoInvalido('Email de tutor inválido');
+  return transaccion(() => {
     if (id) {
-      run('UPDATE usuarios SET dni=?,nombre=?,apellido=?,email=?,curso_id=?,activo=? WHERE id=?', dni, nombre, apellido, email || null, cursoId, b.activo === false ? 0 : 1, id);
-      if (b.password) run('UPDATE usuarios SET pass_hash=?, debe_cambiar_pass=1 WHERE id=?', hashPass(String(b.password)), id);
+      ejecutar('UPDATE usuarios SET dni=?,nombre=?,apellido=?,email=?,curso_id=?,activo=? WHERE id=?', dni, nombre, apellido, email || null, cursoId, b.activo === false ? 0 : 1, id);
+      if (b.clave) ejecutar('UPDATE usuarios SET clave_hash=?, debe_cambiar_clave=1 WHERE id=?', hashearClave(String(b.clave)), id);
     } else {
-      const pw = String(b.password || dni);   // por defecto la contraseña inicial es el DNI (se obliga a cambiarla)
-      id = run('INSERT INTO usuarios(dni,nombre,apellido,email,rol,pass_hash,curso_id) VALUES(?,?,?,?,?,?,?)', dni, nombre, apellido, email || null, rol, hashPass(pw), cursoId).lastInsertRowid;
+      const pw = String(b.clave || dni);   // por defecto la contraseña inicial es el DNI (se obliga a cambiarla)
+      id = ejecutar('INSERT INTO usuarios(dni,nombre,apellido,email,rol,clave_hash,curso_id) VALUES(?,?,?,?,?,?,?)', dni, nombre, apellido, email || null, rol, hashearClave(pw), cursoId).lastInsertRowid;
     }
-    if (rol === 'alumno') { run('DELETE FROM tutores WHERE alumno_id=?', id); for (const t of tutores) run('INSERT INTO tutores(alumno_id,nombre,email,parentesco) VALUES(?,?,?,?)', id, t.nombre, t.email, t.parentesco); }
-    if (rol === 'preceptor') { run('DELETE FROM preceptor_cursos WHERE preceptor_id=?', id); for (const c of b.cursos || []) run('INSERT INTO preceptor_cursos VALUES(?,?)', id, +c); }
-    audit(actor.id, 'usuario_guardado', `${rol} ${dni}`);
+    if (rol === 'alumno') { ejecutar('DELETE FROM tutores WHERE alumno_id=?', id); for (const t of tutores) ejecutar('INSERT INTO tutores(alumno_id,nombre,email,parentesco) VALUES(?,?,?,?)', id, t.nombre, t.email, t.parentesco); }
+    if (rol === 'preceptor') { ejecutar('DELETE FROM preceptor_cursos WHERE preceptor_id=?', id); for (const c of b.cursos || []) ejecutar('INSERT INTO preceptor_cursos VALUES(?,?)', id, +c); }
+    auditar(actor.id, 'usuario_guardado', `${rol} ${dni}`);
     return { id: Number(id) };
   });
 }
-route('POST', '/api/usuarios', ({ user, body }) => guardar(null, body, user), ADMIN);
-route('PUT', '/api/usuarios/:id', ({ user, params, body }) => { if (!get('SELECT 1 FROM usuarios WHERE id=?', params.id)) throw notFound(); return guardar(+params.id, body, user); }, ADMIN);
-route('DELETE', '/api/usuarios/:id', ({ user, params }) => {   // baja lógica: conserva historial de notas
-  if (+params.id === user.id) throw bad('No podés darte de baja a vos mismo');
-  run('UPDATE usuarios SET activo=0 WHERE id=?', params.id); run('DELETE FROM sesiones WHERE usuario_id=?', params.id);
-  audit(user.id, 'usuario_baja', params.id); return { ok: true };
-}, ADMIN);
+ruta('POST', '/api/usuarios', ({ usuario, datos }) => guardar(null, datos, usuario), SOLO_ADMIN);
+ruta('PUT', '/api/usuarios/:id', ({ usuario, parametros, datos }) => { if (!uno('SELECT 1 FROM usuarios WHERE id=?', parametros.id)) throw noEncontrado(); return guardar(+parametros.id, datos, usuario); }, SOLO_ADMIN);
+ruta('DELETE', '/api/usuarios/:id', ({ usuario, parametros }) => {   // baja lógica: conserva historial de notas
+  if (+parametros.id === usuario.id) throw pedidoInvalido('No podés darte de baja a vos mismo');
+  ejecutar('UPDATE usuarios SET activo=0 WHERE id=?', parametros.id); ejecutar('DELETE FROM sesiones WHERE usuario_id=?', parametros.id);
+  auditar(usuario.id, 'usuario_baja', parametros.id); return { ok: true };
+}, SOLO_ADMIN);
 
 // Alumnos visibles según rol (para listados de notas / asistencia / boletines)
-route('GET', '/api/alumnos', ({ user, query }) => {
-  const cursos = cursosVisibles(user);
-  if (query.curso_id && !cursos.includes(+query.curso_id)) throw forbid('No tenés acceso a ese curso');
-  const ids = query.curso_id ? [+query.curso_id] : cursos;
+ruta('GET', '/api/alumnos', ({ usuario, filtros }) => {
+  const cursos = cursosVisibles(usuario);
+  if (filtros.curso_id && !cursos.includes(+filtros.curso_id)) throw prohibido('No tenés acceso a ese curso');
+  const ids = filtros.curso_id ? [+filtros.curso_id] : cursos;
   if (!ids.length) return [];
-  return all(`SELECT id,dni,nombre,apellido,curso_id FROM usuarios WHERE rol='alumno' AND activo=1 AND curso_id IN (${ids.map(() => '?').join(',')}) ORDER BY apellido,nombre`, ...ids);
-}, STAFF);
+  return todos(`SELECT id,dni,nombre,apellido,curso_id FROM usuarios WHERE rol='alumno' AND activo=1 AND curso_id IN (${ids.map(() => '?').join(',')}) ORDER BY apellido,nombre`, ...ids);
+}, PERSONAL);
 
-route('GET', '/api/auditoria', () => all('SELECT a.fecha,a.accion,a.detalle,u.apellido||" "||u.nombre usuario FROM auditoria a LEFT JOIN usuarios u ON u.id=a.usuario_id ORDER BY a.id DESC LIMIT 100'), ADMIN);
+ruta('GET', '/api/auditoria', () => todos('SELECT a.fecha,a.accion,a.detalle,u.apellido||" "||u.nombre usuario FROM auditoria a LEFT JOIN usuarios u ON u.id=a.usuario_id ORDER BY a.id DESC LIMIT 100'), SOLO_ADMIN);
