@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Envío de boletines – la35Notas</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="loading">
+<main id="content">
+<div class="section-header"><div class="section-title">Boletines digitales</div></div>
+<div class="card card-pad"><div class="form-row"><div class="field"><label>Curso</label><select id="curso"></select></div><div class="field"><label>Período</label><select id="per"></select></div></div></div>
+<div id="tabla"></div>
+<div class="section-header" style="margin-top:28px"><div class="section-title">Bandeja de salida</div><button class="btn btn-ghost btn-sm" id="reintentar">Reintentar pendientes / con error</button></div>
+<div class="card"><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Destinatario</th><th>Asunto</th><th>Estado</th></tr></thead><tbody id="outbox"></tbody></table></div></div>
+</main>
+<script type="module" src="js/pages/boletines.js"></script>
+</body>
+</html>
