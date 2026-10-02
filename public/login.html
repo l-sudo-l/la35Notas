@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ingresar – la35Notas</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="login-screen">
+  <form class="login-card" id="login-form">
+    <div class="login-logo">la35<span>Notas</span></div>
+    <div class="login-sub">Sistema de Gestión de Calificaciones</div>
+    <div class="field"><label>Usuario / DNI</label><input type="text" id="dni" autocomplete="username" inputmode="numeric" required autofocus></div>
+    <div class="field"><label>Contraseña</label><input type="password" id="password" autocomplete="current-password" required></div>
+    <div class="login-error" id="err"></div>
+    <button class="btn-primary" type="submit">Ingresar al sistema</button>
+    <div class="login-hint">Si sos madre, padre o tutor no necesitás usuario: recibís los boletines y comunicados por email.</div>
+  </form>
+</div>
+<script type="module" src="js/pages/login.js"></script>
+</body>
+</html>
