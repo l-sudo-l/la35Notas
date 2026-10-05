@@ -6,9 +6,9 @@ Node.js 22.5+ · **cero dependencias** · base de datos SQLite integrada (`node:
 ## Arrancar
 
 ```bash
-npm run seed     # crea la base con datos de ejemplo (--reset: la recrea)
-npm start        # http://localhost:3000
-npm test         # 33 pruebas automáticas de permisos y flujos
+npm.cmd run seed    # crea la base con datos de ejemplo (--reset: la recrea)
+npm.cmd start        # http://localhost:3000
+npm.cmd test         # 33 pruebas automáticas de permisos y flujos
 ```
 
 Usuarios de ejemplo (la contraseña inicial es el DNI; el sistema obliga a cambiarla):
