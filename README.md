@@ -20,6 +20,10 @@ Usuarios de ejemplo (la contraseña inicial es el DNI; el sistema obliga a cambi
 | Preceptor | `28111222` | `28111222` |
 | Alumno | `96103383` | `96103383` |
 
+## Manuales de usuario
+
+En la carpeta [`docs/`](docs/README.md) hay un manual por rol: administrador, preceptor, profesor, alumno y familias.
+
 ## Estructura
 
 ```
