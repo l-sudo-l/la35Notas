@@ -47,6 +47,42 @@ librerías (`fetch`, `classList`, `nodemailer`, `req.url`, etc.).
 Variables de entorno (`.env`): `PUERTO`, `RUTA_BASE`, `HORAS_SESION`, `NOMBRE_COLEGIO`, `SMTP_HOST`, `SMTP_PORT`,
 `SMTP_USER`, `SMTP_PASS`, `REMITENTE`, `COOKIE_SEGURA`.
 
+## Roles y permisos
+
+| Acción | Admin | Preceptor | Profesor | Alumno |
+|---|:-:|:-:|:-:|:-:|
+| Usuarios, cursos, materias, ciclos | ✅ | ❌ | ❌ | ❌ |
+| Cerrar / reabrir período | ✅ | ❌ | ❌ | ❌ |
+| Cargar notas | ✅ | ✅ | solo sus materias, mientras no estén cerradas | ❌ |
+| Corregir notas cerradas | ✅ | ✅ (con motivo) | ❌ | ❌ |
+| Registrar asistencia | ✅ | ✅ (sus cursos) | solo lectura | solo la propia |
+| Comunicados | ✅ (a todos los cursos) | ✅ (sus cursos) | solo lectura | solo los enviados |
+| Boletines masivos por email | ✅ | ✅ | ❌ | solo el propio |
+
+Los padres/tutores no tienen usuario: reciben boletines y comunicados por email.
+La matriz vive en `src/rbac.js` y la usan tanto el servidor como el menú.
+
+## Reglas de negocio
+
+- **Notas:** el profesor guarda borrador y luego "cierra". Una nota cerrada solo la corrige preceptoría o administración, con motivo obligatorio; cada corrección queda en `notas_historial` y en la auditoría.
+- **Períodos:** el admin los cierra (avisa si hay notas sin cargar). Con el período cerrado, el profesor ya no puede cargar.
+- **Promedio:** por materia, es el promedio de las notas cerradas de cada período. El "promedio sugerido" al cargar es solo una ayuda.
+- **Asistencia:** presente, ausente, tarde (cuenta media falta) y justificada (no cuenta).
+- **Boletines:** `borrador` → `revisado` → `enviado` (o `error`). Solo se envían los revisados, y los alumnos sin email de tutor quedan marcados como error.
+- **Alumno:** ve únicamente sus notas cerradas, nunca borradores.
+- **Seguridad:** contraseñas con scrypt, cookie `HttpOnly` + `SameSite=Strict`, bloqueo tras 5 intentos fallidos, baja lógica de usuarios (conserva el historial).
+
+## Estado actual y limitaciones
+
+Probado: las 33 pruebas automáticas y un recorrido en navegador (Chromium de escritorio) con los cuatro roles.
+Pendiente o no probado:
+
+- Envío real por Gmail (falta `nodemailer` y credenciales; hoy queda "simulado").
+- Pantallas de celular: el CSS es responsive pero no se verificó.
+- No hay importación masiva de alumnos desde Excel (se cargan uno por uno).
+- Los boletines salen como HTML dentro del mail; no se adjunta PDF (desde la vista de consulta se puede imprimir / guardar como PDF).
+- La recuperación de contraseña la hace el admin (no hay "olvidé mi contraseña" por mail).
+
 ## Email (Gmail)
 
 1. `cp .env.example .env`
