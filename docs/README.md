@@ -2,6 +2,7 @@
 
 | Manual | Para quién |
 |---|---|
+| [Guía de funcionamiento](guia-de-funcionamiento.md) | Cualquier persona que quiera revisar o probar la plataforma: cómo se usa, recorrido de prueba y arquitectura |
 | [Administrador](manual-administrador.md) | Dirección / secretaría: configura todo el sistema |
 | [Preceptor](manual-preceptor.md) | Asistencias, correcciones de notas, comunicados y boletines |
 | [Profesor](manual-profesor.md) | Carga de notas de sus materias |

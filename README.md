@@ -22,7 +22,7 @@ Usuarios de ejemplo (la contraseña inicial es el DNI; el sistema obliga a cambi
 
 ## Manuales de usuario
 
-En la carpeta [`docs/`](docs/README.md) hay un manual por rol: administrador, preceptor, profesor, alumno y familias.
+En la carpeta [`docs/`](docs/README.md) hay una [guía de funcionamiento](docs/guia-de-funcionamiento.md) para revisar la plataforma y un manual por rol: administrador, preceptor, profesor, alumno y familias.
 
 ## Estructura
 
