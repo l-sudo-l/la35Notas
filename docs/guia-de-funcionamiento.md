@@ -17,8 +17,8 @@ Un sistema web de gestión escolar donde **cada persona ve y hace solo lo que le
 Requisito: **Node.js 22.5 o superior**. No hay que instalar librerías.
 
 ```bash
-npm run seed     # crea la base con datos de ejemplo
-npm start        # abre http://localhost:3000
+npm.cmd run seed    # crea la base con datos de ejemplo (--reset: la recrea)
+npm.cmd start        # http://localhost:3000
 ```
 
 En Windows/PowerShell, si aparece un error de scripts deshabilitados, usar `npm.cmd run seed` y `npm.cmd start`.
