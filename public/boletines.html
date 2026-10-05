@@ -5,13 +5,13 @@
 <title>Envío de boletines – la35Notas</title>
 <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="loading">
-<main id="content">
-<div class="section-header"><div class="section-title">Boletines digitales</div></div>
-<div class="card card-pad"><div class="form-row"><div class="field"><label>Curso</label><select id="curso"></select></div><div class="field"><label>Período</label><select id="per"></select></div></div></div>
+<body class="cargando">
+<main id="contenido">
+<div class="encabezado-seccion"><div class="titulo-seccion">Boletines digitales</div></div>
+<div class="tarjeta tarjeta-relleno"><div class="fila-formulario"><div class="campo"><label>Curso</label><select id="curso"></select></div><div class="campo"><label>Período</label><select id="per"></select></div></div></div>
 <div id="tabla"></div>
-<div class="section-header" style="margin-top:28px"><div class="section-title">Bandeja de salida</div><button class="btn btn-ghost btn-sm" id="reintentar">Reintentar pendientes / con error</button></div>
-<div class="card"><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Destinatario</th><th>Asunto</th><th>Estado</th></tr></thead><tbody id="outbox"></tbody></table></div></div>
+<div class="encabezado-seccion" style="margin-top:28px"><div class="titulo-seccion">Bandeja de salida</div><button class="boton boton-fantasma boton-chico" id="reintentar">Reintentar pendientes / con error</button></div>
+<div class="tarjeta"><div class="tabla-contenedor"><table><thead><tr><th>Fecha</th><th>Destinatario</th><th>Asunto</th><th>Estado</th></tr></thead><tbody id="bandeja"></tbody></table></div></div>
 </main>
 <script type="module" src="js/pages/boletines.js"></script>
 </body>

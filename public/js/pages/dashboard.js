@@ -1,19 +1,19 @@
-import { $, api, esc, badge } from '../api.js';
-import { init } from '../layout.js';
-const me = await init();
+import { $, api, escapar, etiqueta } from '../api.js';
+import { iniciar } from '../layout.js';
+const yo = await iniciar();
 const d = await api('dashboard');
-const card = (cls, ic, label, val, sub = '') => `<div class="stat-card ${cls}" data-icon="${ic}"><div class="stat-label">${label}</div><div class="stat-value">${val ?? '–'}</div><div class="stat-sub">${sub}</div></div>`;
+const tarjeta = (clase, icono, rotulo, valor, subtitulo = '') => `<div class="tarjeta-estadistica ${clase}" data-icon="${icono}"><div class="estadistica-etiqueta">${rotulo}</div><div class="estadistica-valor">${valor ?? '–'}</div><div class="estadistica-sub">${subtitulo}</div></div>`;
 const per = d.periodo ? d.periodo.nombre : 'Sin período abierto';
 let html = '';
-if (me.rol === 'alumno') {
-  html = card('blue', '🎓', 'Curso', esc(d.curso || '–'), per) + card('ok', '📊', 'Promedio general', d.promedio ?? '–', 'Notas cerradas') +
-    card('', '🗓️', 'Asistencia', d.asistencia.porcentaje_asistencia != null ? d.asistencia.porcentaje_asistencia + ' %' : '–', `${d.asistencia.inasistencias} inasistencias`);
+if (yo.rol === 'alumno') {
+  html = tarjeta('azul', '🎓', 'Curso', escapar(d.curso || '–'), per) + tarjeta('ok', '📊', 'Promedio general', d.promedio ?? '–', 'Notas cerradas') +
+    tarjeta('', '🗓️', 'Asistencia', d.asistencia.porcentaje_asistencia != null ? d.asistencia.porcentaje_asistencia + ' %' : '–', `${d.asistencia.inasistencias} inasistencias`);
 } else {
-  html = card('blue', '👥', 'Alumnos', d.alumnos, `${d.cursos} curso(s)`) + card('ok', '✅', 'Notas cerradas', d.notas_cerradas, per) +
-    card('warn', '⚠️', 'Notas pendientes', d.notas_pendientes, per) + card('warn', '📉', 'Notas desaprobadas', d.desaprobadas, 'Menores a 6');
-  if (d.mails_enviados != null) html += card('', '📧', 'Mails enviados', d.mails_enviados, d.mails_error ? `${d.mails_error} con error` : 'Sin errores');
+  html = tarjeta('azul', '👥', 'Alumnos', d.alumnos, `${d.cursos} curso(s)`) + tarjeta('ok', '✅', 'Notas cerradas', d.notas_cerradas, per) +
+    tarjeta('alerta', '⚠️', 'Notas pendientes', d.notas_pendientes, per) + tarjeta('alerta', '📉', 'Notas desaprobadas', d.desaprobadas, 'Menores a 6');
+  if (d.correos_enviados != null) html += tarjeta('', '📧', 'Correos enviados', d.correos_enviados, d.correos_error ? `${d.correos_error} con error` : 'Sin errores');
 }
-$('#stats').innerHTML = html;
-const com = (d.comunicados || []).map((c) => `<div class="com-item"><b>${esc(c.titulo)}</b> ${c.estado === 'borrador' ? badge('borrador', 'grey') : ''}<div class="meta">${esc(c.enviado || '')}</div></div>`).join('') || '<div class="empty">Sin comunicados</div>';
-$('#dash-extra').innerHTML = `<div class="section-header"><div class="section-title">Últimos comunicados</div></div><div class="card">${com}</div>` +
-  (me.rol === 'admin' ? `<div class="section-header" style="margin-top:24px"><div class="section-title">Usuarios activos</div></div><div class="card card-pad">${Object.entries(d.usuarios || {}).map(([r, n]) => badge(`${r}: ${n}`)).join(' ')}</div>` : '');
+$('#estadisticas').innerHTML = html;
+const com = (d.comunicados || []).map((c) => `<div class="item-comunicado"><b>${escapar(c.titulo)}</b> ${c.estado === 'borrador' ? etiqueta('borrador', 'gris') : ''}<div class="meta">${escapar(c.enviado || '')}</div></div>`).join('') || '<div class="vacio">Sin comunicados</div>';
+$('#panel-extra').innerHTML = `<div class="encabezado-seccion"><div class="titulo-seccion">Últimos comunicados</div></div><div class="tarjeta">${com}</div>` +
+  (yo.rol === 'admin' ? `<div class="encabezado-seccion" style="margin-top:24px"><div class="titulo-seccion">Usuarios activos</div></div><div class="tarjeta tarjeta-relleno">${Object.entries(d.usuarios || {}).map(([r, n]) => etiqueta(`${r}: ${n}`)).join(' ')}</div>` : '');

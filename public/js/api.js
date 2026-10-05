@@ -1,36 +1,36 @@
 // Utilidades compartidas: fetch a la API, escape HTML, toasts y modales.
 export const $ = (s, r = document) => r.querySelector(s);
 export const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+export const escapar = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 // Rutas relativas ("api/...") => funciona en cualquier host/subcarpeta
-export async function api(path, { method = 'GET', body } = {}) {
-  const r = await fetch('api/' + path, { method, headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined, credentials: 'same-origin' });
-  const data = await r.json().catch(() => ({}));
+export async function api(path, { method = 'GET', cuerpo } = {}) {
+  const r = await fetch('api/' + path, { method, headers: cuerpo ? { 'Content-Type': 'application/json' } : {}, body: cuerpo ? JSON.stringify(cuerpo) : undefined, credentials: 'same-origin' });
+  const datos = await r.json().catch(() => ({}));
   if (r.status === 401 && !location.pathname.endsWith('login.html')) { location.href = 'login.html'; throw new Error('Sesión vencida'); }
-  if (!r.ok) throw new Error(data.error || 'Error ' + r.status);
-  return data;
+  if (!r.ok) throw new Error(datos.error || 'Error ' + r.status);
+  return datos;
 }
 
-export function toast(msg, type = 'ok') {
-  let c = $('#toast-container'); if (!c) { c = document.createElement('div'); c.id = 'toast-container'; c.className = 'toast-container'; document.body.appendChild(c); }
-  const t = document.createElement('div'); t.className = `toast show ${type}-toast`; t.textContent = msg; c.appendChild(t); setTimeout(() => t.remove(), 3500);
+export function avisar(mensaje, tipo = 'ok') {
+  let c = $('#mensajes-flotantes'); if (!c) { c = document.createElement('div'); c.id = 'toast-container'; c.className = 'mensajes-flotantes'; document.body.appendChild(c); }
+  const t = document.createElement('div'); t.className = `mensaje-flotante mostrar mensaje-${tipo}`; t.textContent = mensaje; c.appendChild(t); setTimeout(() => t.remove(), 3500);
 }
-export const guard = (fn) => async (...a) => { try { return await fn(...a); } catch (e) { toast(e.message, 'warn'); } };
+export const protegido = (funcion) => async (...a) => { try { return await funcion(...a); } catch (e) { avisar(e.message, 'alerta'); } };
 
 // Modal genérico. Devuelve { el, close }. onSubmit(el) puede devolver false para no cerrar.
-export function modal(title, bodyHtml, { onSubmit, submitText = 'Guardar ✓', wide = false } = {}) {
-  const ov = document.createElement('div'); ov.className = 'modal-overlay';
-  ov.innerHTML = `<div class="modal ${wide ? 'modal-wide' : ''}"><div class="modal-title">${esc(title)}</div><div class="m-body">${bodyHtml}</div>
-    <div class="modal-footer"><button class="btn btn-ghost" data-x>${onSubmit ? 'Cancelar' : 'Cerrar'}</button>${onSubmit ? `<button class="btn btn-blue" data-ok>${submitText}</button>` : ''}</div></div>`;
-  document.body.appendChild(ov); requestAnimationFrame(() => ov.classList.add('open'));
-  const close = () => { ov.classList.remove('open'); setTimeout(() => ov.remove(), 200); };
-  ov.addEventListener('click', async (e) => {
-    if (e.target === ov || e.target.hasAttribute('data-x')) close();
-    if (e.target.hasAttribute('data-ok')) { try { if ((await onSubmit(ov)) !== false) close(); } catch (er) { toast(er.message, 'warn'); } }
+export function modal(titulo, htmlCuerpo, { alEnviar, textoEnviar = 'Guardar ✓', ancho = false } = {}) {
+  const fondo = document.createElement('div'); fondo.className = 'modal-fondo';
+  fondo.innerHTML = `<div class="modal ${ancho ? 'modal-ancho' : ''}"><div class="modal-titulo">${escapar(titulo)}</div><div class="modal-cuerpo">${htmlCuerpo}</div>
+    <div class="modal-pie"><button class="boton boton-fantasma" data-cerrar>${alEnviar ? 'Cancelar' : 'Cerrar'}</button>${alEnviar ? `<button class="boton boton-azul" data-aceptar>${textoEnviar}</button>` : ''}</div></div>`;
+  document.body.appendChild(fondo); requestAnimationFrame(() => fondo.classList.add('abierto'));
+  const cerrarModal = () => { fondo.classList.remove('abierto'); setTimeout(() => fondo.remove(), 200); };
+  fondo.addEventListener('click', async (e) => {
+    if (e.target === fondo || e.target.hasAttribute('data-cerrar')) cerrarModal();
+    if (e.target.hasAttribute('data-aceptar')) { try { if ((await alEnviar(fondo)) !== false) cerrarModal(); } catch (er) { avisar(er.message, 'alerta'); } }
   });
-  return { el: ov, close };
+  return { el: fondo, cerrarModal };
 }
-export const options = (list, valueKey, labelFn, placeholder) => (placeholder ? `<option value="">${esc(placeholder)}</option>` : '') + list.map((x) => `<option value="${esc(x[valueKey])}">${esc(labelFn(x))}</option>`).join('');
-export const badge = (txt, kind = 'blue') => `<span class="badge badge-${kind}">${esc(txt)}</span>`;
-export const ROL = { admin: 'Administrador', profesor: 'Profesor', preceptor: 'Preceptor', alumno: 'Alumno' };
+export const opciones = (elementos, claveValor, fnRotulo, textoInicial) => (textoInicial ? `<option value="">${escapar(textoInicial)}</option>` : '') + elementos.map((x) => `<option value="${escapar(x[claveValor])}">${escapar(fnRotulo(x))}</option>`).join('');
+export const etiqueta = (texto, tipo = 'azul') => `<span class="etiqueta etiqueta-${tipo}">${escapar(texto)}</span>`;
+export const NOMBRE_ROL = { admin: 'Administrador', profesor: 'Profesor', preceptor: 'Preceptor', alumno: 'Alumno' };

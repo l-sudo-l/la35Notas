@@ -1,38 +1,38 @@
-import { $, api, esc, toast, guard, options, badge } from '../api.js';
-import { init } from '../layout.js';
-await init();
-const root = $('#acad');
-const post = (p, body) => api(p, { method: 'POST', body });
+import { $, api, escapar, avisar, protegido, opciones, etiqueta } from '../api.js';
+import { iniciar } from '../layout.js';
+await iniciar();
+const raiz = $('#acad');
+const publicar = (p, cuerpo) => api(p, { method: 'POST', cuerpo });
 
-const render = guard(async () => {
+const dibujar = protegido(async () => {
   const c = await api('academico/config');
   const activo = c.ciclos.find((x) => x.activo);
-  root.innerHTML = `
-  <div class="section-header"><div class="section-title">Ciclos lectivos y períodos</div></div>
-  <div class="card card-pad"><div class="form-row"><div class="field"><label>Nuevo ciclo (ej. 2026)</label><input id="ciclo-n"></div><button class="btn btn-blue" id="ciclo-add">Crear ciclo</button></div></div>
-  ${c.ciclos.map((ci) => `<div class="card" style="margin-bottom:16px"><div class="section-header" style="padding:12px 16px;margin:0"><b>Ciclo ${esc(ci.nombre)}</b> ${ci.activo ? badge('Activo', 'ok') : `<button class="btn btn-ghost btn-sm" data-act="${ci.id}">Activar</button>`}</div>
-    <div class="table-wrap"><table><tbody>${c.periodos.filter((p) => p.ciclo_id === ci.id).map((p) => `<tr><td>${esc(p.nombre)}</td><td>${badge(p.estado, p.estado === 'abierto' ? 'ok' : 'grey')}</td>
-      <td><button class="btn btn-ghost btn-sm" data-per="${p.id}" data-est="${p.estado === 'abierto' ? 'cerrado' : 'abierto'}">${p.estado === 'abierto' ? 'Cerrar período' : 'Reabrir'}</button></td></tr>`).join('')}</tbody></table></div></div>`).join('')}
-  <div class="stats-grid" style="margin-top:28px">
-    <div class="card card-pad"><div class="section-title">Cursos</div><p class="muted" style="margin:8px 0">${c.cursos.map((x) => esc(x.nombre)).join(' · ') || 'Sin cursos'}</p><div class="form-row"><div class="field"><input id="curso-n" placeholder="Ej: 5° 2°"></div><button class="btn btn-blue btn-sm" id="curso-add">Agregar</button></div></div>
-    <div class="card card-pad"><div class="section-title">Materias</div><p class="muted" style="margin:8px 0">${c.materias.map((x) => esc(x.nombre)).join(' · ') || 'Sin materias'}</p><div class="form-row"><div class="field"><input id="mat-n" placeholder="Ej: Matemática"></div><button class="btn btn-blue btn-sm" id="mat-add">Agregar</button></div></div></div>
-  <div class="section-header" style="margin-top:28px"><div class="section-title">Asignación de profesores</div></div>
-  <div class="card card-pad"><div class="form-row"><div class="field"><label>Curso</label><select id="a-c">${options(c.cursos, 'id', (x) => x.nombre, '…')}</select></div><div class="field"><label>Materia</label><select id="a-m">${options(c.materias, 'id', (x) => x.nombre, '…')}</select></div>
-    <div class="field"><label>Profesor</label><select id="a-p">${options(c.profesores, 'id', (x) => `${x.apellido} ${x.nombre}`, '…')}</select></div><button class="btn btn-blue" id="a-add">Asignar</button></div></div>
-  <div class="card"><div class="table-wrap"><table><thead><tr><th>Curso</th><th>Materia</th><th>Profesor</th><th></th></tr></thead><tbody>${c.asignaciones.map((a) => `<tr><td>${esc(a.curso)}</td><td>${esc(a.materia)}</td><td>${esc(a.profesor)}</td><td><button class="btn btn-ghost btn-sm" data-delasg="${a.id}">Quitar</button></td></tr>`).join('')}</tbody></table></div></div>`;
-  $('#ciclo-add').onclick = guard(async () => { await post('academico/ciclos', { nombre: $('#ciclo-n').value, activo: !activo }); render(); });
-  $('#curso-add').onclick = guard(async () => { await post('academico/cursos', { nombre: $('#curso-n').value }); render(); });
-  $('#mat-add').onclick = guard(async () => { await post('academico/materias', { nombre: $('#mat-n').value }); render(); });
-  $('#a-add').onclick = guard(async () => { await post('academico/asignaciones', { curso_id: $('#a-c').value, materia_id: $('#a-m').value, profesor_id: $('#a-p').value }); toast('Asignación creada'); render(); });
+  raiz.innerHTML = `
+  <div class="encabezado-seccion"><div class="titulo-seccion">Ciclos lectivos y períodos</div></div>
+  <div class="tarjeta tarjeta-relleno"><div class="fila-formulario"><div class="campo"><label>Nuevo ciclo (ej. 2026)</label><input id="ciclo-nombre"></div><button class="boton boton-azul" id="ciclo-agregar">Crear ciclo</button></div></div>
+  ${c.ciclos.map((ci) => `<div class="tarjeta" style="margin-bottom:16px"><div class="encabezado-seccion" style="padding:12px 16px;margin:0"><b>Ciclo ${escapar(ci.nombre)}</b> ${ci.activo ? etiqueta('Activo', 'ok') : `<button class="boton boton-fantasma boton-chico" data-activar="${ci.id}">Activar</button>`}</div>
+    <div class="tabla-contenedor"><table><tbody>${c.periodos.filter((p) => p.ciclo_id === ci.id).map((p) => `<tr><td>${escapar(p.nombre)}</td><td>${etiqueta(p.estado, p.estado === 'abierto' ? 'ok' : 'gris')}</td>
+      <td><button class="boton boton-fantasma boton-chico" data-periodo="${p.id}" data-estado="${p.estado === 'abierto' ? 'cerrado' : 'abierto'}">${p.estado === 'abierto' ? 'Cerrar período' : 'Reabrir'}</button></td></tr>`).join('')}</tbody></table></div></div>`).join('')}
+  <div class="grilla-estadisticas" style="margin-top:28px">
+    <div class="tarjeta tarjeta-relleno"><div class="titulo-seccion">Cursos</div><p class="apagado" style="margin:8px 0">${c.cursos.map((x) => escapar(x.nombre)).join(' · ') || 'Sin cursos'}</p><div class="fila-formulario"><div class="campo"><input id="curso-nombre" placeholder="Ej: 5° 2°"></div><button class="boton boton-azul boton-chico" id="curso-agregar">Agregar</button></div></div>
+    <div class="tarjeta tarjeta-relleno"><div class="titulo-seccion">Materias</div><p class="apagado" style="margin:8px 0">${c.materias.map((x) => escapar(x.nombre)).join(' · ') || 'Sin materias'}</p><div class="fila-formulario"><div class="campo"><input id="materia-nombre" placeholder="Ej: Matemática"></div><button class="boton boton-azul boton-chico" id="materia-agregar">Agregar</button></div></div></div>
+  <div class="encabezado-seccion" style="margin-top:28px"><div class="titulo-seccion">Asignación de profesores</div></div>
+  <div class="tarjeta tarjeta-relleno"><div class="fila-formulario"><div class="campo"><label>Curso</label><select id="asig-curso">${opciones(c.cursos, 'id', (x) => x.nombre, '…')}</select></div><div class="campo"><label>Materia</label><select id="asig-materia">${opciones(c.materias, 'id', (x) => x.nombre, '…')}</select></div>
+    <div class="campo"><label>Profesor</label><select id="asig-profesor">${opciones(c.profesores, 'id', (x) => `${x.apellido} ${x.nombre}`, '…')}</select></div><button class="boton boton-azul" id="asig-agregar">Asignar</button></div></div>
+  <div class="tarjeta"><div class="tabla-contenedor"><table><thead><tr><th>Curso</th><th>Materia</th><th>Profesor</th><th></th></tr></thead><tbody>${c.asignaciones.map((a) => `<tr><td>${escapar(a.curso)}</td><td>${escapar(a.materia)}</td><td>${escapar(a.profesor)}</td><td><button class="boton boton-fantasma boton-chico" data-quitar-asig="${a.id}">Quitar</button></td></tr>`).join('')}</tbody></table></div></div>`;
+  $('#ciclo-agregar').onclick = protegido(async () => { await publicar('academico/ciclos', { nombre: $('#ciclo-nombre').value, activo: !activo }); dibujar(); });
+  $('#curso-agregar').onclick = protegido(async () => { await publicar('academico/cursos', { nombre: $('#curso-nombre').value }); dibujar(); });
+  $('#materia-agregar').onclick = protegido(async () => { await publicar('academico/materias', { nombre: $('#materia-nombre').value }); dibujar(); });
+  $('#asig-agregar').onclick = protegido(async () => { await publicar('academico/asignaciones', { curso_id: $('#asig-curso').value, materia_id: $('#asig-materia').value, profesor_id: $('#asig-profesor').value }); avisar('Asignación creada'); dibujar(); });
 });
-root.onclick = guard(async (e) => {
+raiz.onclick = protegido(async (e) => {
   const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.act) { await api(`academico/ciclos/${b.dataset.act}/activar`, { method: 'PUT', body: {} }); render(); }
-  if (b.dataset.delasg) { await api(`academico/asignaciones/${b.dataset.delasg}`, { method: 'DELETE' }); render(); }
-  if (b.dataset.per) {
-    let r = await api(`academico/periodos/${b.dataset.per}/estado`, { method: 'PUT', body: { estado: b.dataset.est } });
-    if (!r.ok && confirm(r.error)) r = await api(`academico/periodos/${b.dataset.per}/estado`, { method: 'PUT', body: { estado: b.dataset.est, forzar: true } });
-    if (r.ok) { toast('Período ' + b.dataset.est); render(); }
+  if (b.dataset.activar) { await api(`academico/ciclos/${b.dataset.activar}/activar`, { method: 'PUT', cuerpo: {} }); dibujar(); }
+  if (b.dataset.borrarasg) { await api(`academico/asignaciones/${b.dataset.borrarasg}`, { method: 'DELETE' }); dibujar(); }
+  if (b.dataset.periodo) {
+    let r = await api(`academico/periodos/${b.dataset.periodo}/estado`, { method: 'PUT', cuerpo: { estado: b.dataset.estado } });
+    if (!r.ok && confirm(r.error)) r = await api(`academico/periodos/${b.dataset.periodo}/estado`, { method: 'PUT', cuerpo: { estado: b.dataset.estado, forzar: true } });
+    if (r.ok) { avisar('Período ' + b.dataset.estado); dibujar(); }
   }
 });
-render();
+dibujar();
